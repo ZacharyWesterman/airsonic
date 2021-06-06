@@ -1,5 +1,11 @@
 #!/usr/bin/bash
 
+#check dependencies and exit if any are not met
+src/require.sh || exit 1
+
+#make sure we're in this script's working dir
+cd "$(dirname "${BASH_SOURCE[0]}")" || exit 1
+
 begin=$(date +%s)
 
 temp1=/var/tmp/Incoming
@@ -14,26 +20,6 @@ cd $temp1 || exit 1
 rm -rf $temp2 $convtemp
 mkdir $temp2
 
-declare -A tags
-
-function setTags()
-{
-	[ "${tags[Artist]}" == '' ] && tags[Artist]="${tags[AlbumArtist]}"
-	[[ "${tags[Artist]^^}" == *'UNKNOWN'* ]] && tags[Artist]=''
-	[ "${tags[Album]}" == '' ] && tags[Album]="${tags[AlbumTitle]}"
-	[[ "${tags[Album]^^}" == *'UNKNOWN'* ]] && tags[Album]=''
-	[ "${tags[MediaType]}" == '' ] && tags[MediaType]="${tags[Genre]}"
-	[ "${tags[MediaType]}" == 'Spoken & Audio' ] && tags[MediaType]=Audiobook
-	[ "${tags[MediaType]}" == 'Audio Drama' ] && tags[MediaType]=Audiobook
-	[ "${tags[MediaType]}" == 'Spoken Word' ] && tags[MediaType]=Audiobook
-	[ "${tags[MediaType]}" == 'Podcast' ] && tags[MediaType]=Audiobook
-	[ "${tags[MediaType]}" == 'Film' ] && tags[MediaType]=Soundtrack
-	[ "${tags[Artist]}" == 'Soundtrack' ] && tags[MediaType]=Soundtrack
-	[ "${tags[MediaType]}" == 'None' ] && tags[MediaType]=Audiobook
-	tags[Artist]="$(sed -e 's/[\///]//g' <<< "${tags[Artist]}")"
-	tags[Album]="$(sed -e 's/[\///]//g' <<< "${tags[Album]}")"
-}
-
 # Do an initial scan of the folder, get metadata about the files and organize them
 while read filename
 do
@@ -42,12 +28,8 @@ do
 	echo "$filename"
 	outfilename="$(basename "$filename")"
 
-	tags=()
-	while read k
-	do
-		tags["${k%%: *}"]="${k#*: }"
-	done < <(exiftool -s -s -Artist -AlbumArtist -Album -AlbumTitle -MediaType -Genre -Title "$filename")
-	setTags
+	#Get all the tags
+	. src/tags.sh
 
 	# If we don't know the artist or the album, call out to audD.
 	# Note that this may fail.. only 300 calls per month are free.
@@ -63,8 +45,8 @@ do
 			while read k
 			do
 				tags["${k%%: *}"]="${k#*: }"
-			done < <(/home/airsonic/scripts/audd.py "$convtemp/short.wav")
-			setTags
+			done < <(src/audd.py "$convtemp/short.wav")
+			. src/tags.sh
 
 			#Write the appropriate metadata
 			ext="${filename##*.}"
@@ -88,21 +70,6 @@ do
 	echo "${tags[MediaType]}" >> "$folder/types.txt"
 done < <(find . -type f)
 
-#Input should be the list filename and a percent goal
-function getMostFrequent()
-{
-	mostFreq=''
-	mostFreqCt=0
-	totalCt=0
-
-	while read count value
-	do
-		[ "$mostFreq" == '' ] && mostFreq="$value" && mostFreqCt="$count"
-		totalCt=$((totalCt + count))
-	done < <(sort "$1" | uniq -c | sort -n -r)
-	goal=$((totalCt * "$2" / 100))
-}
-
 #Evaluate where each of the organized albums should go.
 cd $temp2 || exit 2
 for folder in *
@@ -110,10 +77,10 @@ do
 	Album="${folder#album.temp--*}"
 	[ "$Album" == '' ] && Album='Unknown Album'
 
-	getMostFrequent "$folder/types.txt" 80
+	. src/frequent.sh "$folder/types.txt" 80
 	MediaType="$mostFreq"
 
-	getMostFrequent "$folder/artists.txt" 75
+	. src/frequent.sh "$folder/artists.txt" 75
 	[ "$mostFreq" == '' ] && mostFreq='Unknown Artist'
 	[ "$mostFreqCt" -lt "$goal" ] && mostFreq='Various Artists'
 	Artist="$mostFreq"

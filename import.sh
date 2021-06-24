@@ -1,10 +1,11 @@
 #!/usr/bin/bash
 
-#check dependencies and exit if any are not met
-src/require.sh || exit 1
-
 #make sure we're in this script's working dir
 cd "$(dirname "${BASH_SOURCE[0]}")" || exit 1
+srcdir="$(pwd)/src"
+
+#check dependencies and exit if any are not met
+"$srcdir/require.sh" || exit 1
 
 begin=$(date +%s)
 
@@ -14,11 +15,16 @@ convtemp=/tmp/conversion
 
 rm -rf $temp1
 [ -d /home/airsonic/Music/Incoming ] || exit 0
+
+echo "$(date) import started"
+
 mv /home/airsonic/Music/Incoming $temp1
 
 cd $temp1 || exit 1
 rm -rf $temp2 $convtemp
 mkdir $temp2
+
+echo '---- Analyzing Input ----'
 
 # Do an initial scan of the folder, get metadata about the files and organize them
 while read filename
@@ -29,7 +35,7 @@ do
 	outfilename="$(basename "$filename")"
 
 	#Get all the tags
-	. src/tags.sh
+	. "$srcdir/tags.sh"
 
 	# If we don't know the artist or the album, call out to audD.
 	# Note that this may fail.. only 300 calls per month are free.
@@ -45,8 +51,8 @@ do
 			while read k
 			do
 				tags["${k%%: *}"]="${k#*: }"
-			done < <(src/audd.py "$convtemp/short.wav")
-			. src/tags.sh
+			done < <("$srcdir/audd.py" "$convtemp/short.wav")
+			. "$srcdir/tags.sh"
 
 			#Write the appropriate metadata
 			ext="${filename##*.}"
@@ -70,6 +76,8 @@ do
 	echo "${tags[MediaType]}" >> "$folder/types.txt"
 done < <(find . -type f)
 
+echo '---- Sending to Output ----'
+
 #Evaluate where each of the organized albums should go.
 cd $temp2 || exit 2
 for folder in *
@@ -77,10 +85,10 @@ do
 	Album="${folder#album.temp--*}"
 	[ "$Album" == '' ] && Album='Unknown Album'
 
-	. src/frequent.sh "$folder/types.txt" 80
+	. "$srcdir/frequent.sh" "$folder/types.txt" 80
 	MediaType="$mostFreq"
 
-	. src/frequent.sh "$folder/artists.txt" 75
+	. "$srcdir/frequent.sh" "$folder/artists.txt" 75
 	[ "$mostFreq" == '' ] && mostFreq='Unknown Artist'
 	[ "$mostFreqCt" -lt "$goal" ] && mostFreq='Various Artists'
 	Artist="$mostFreq"
@@ -100,6 +108,7 @@ do
 		#[ -e "$destfile" ] && echo "$destfile Already exists! Skipping."
 		#[ ! -e "$destfile" ] && mv "$srcfile" "$destfile"
 		mv "$srcfile" "$destfile"
+		echo "$destfile"
 	done
 done
 
@@ -107,3 +116,4 @@ rm -rf $temp2
 
 finish=$(date +%s)
 echo "$(date) import completed in $((finish - begin)) seconds."
+echo

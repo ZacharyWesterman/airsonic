@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#make sure we're in this script's working dir
+cd "$(dirname "${BASH_SOURCE[0]}")" || exit 1
+
+#check dependencies and exit if any are not met
+src/require.sh || exit 1
+
 cd /home/airsonic || exit 1
 
 while read m4a

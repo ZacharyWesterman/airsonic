@@ -7,7 +7,7 @@
 
 import requests, json, sys
 
-with open('audd_api_token.txt', 'r') as file:
+with open('/home/airsonic/scripts/audd_api_token.txt', 'r') as file:
 	api_token = file.readline().rstrip()
 
 data = {

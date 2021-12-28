@@ -6,5 +6,5 @@
 ffmpeg -i "$1" /tmp/long.wav -loglevel warning -y || exit $?
 sox /tmp/long.wav /tmp/short.wav trim 0 10 || exit $?
 
-/home/airsonic/scripts/audd.py /tmp/short.wav
+/home/airsonic/scripts/src/audd.py /tmp/short.wav
 

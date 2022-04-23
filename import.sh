@@ -24,6 +24,12 @@ cd $temp1 || exit 1
 rm -rf $temp2 $convtemp
 mkdir $temp2
 
+# Unzip any archive uploads
+for filename in *.zip
+do
+	unzip "$filename" && rm "$filename"
+done
+
 echo '---- Analyzing Input ----'
 
 # Do an initial scan of the folder, get metadata about the files and organize them

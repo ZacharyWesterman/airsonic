@@ -27,7 +27,8 @@ mkdir $temp2
 # Unzip any archive uploads
 for filename in *.zip
 do
-	unzip "$filename" && rm "$filename"
+	# Just overwrite (-o) any existing files, don't prompt.
+	unzip -o "$filename" && rm "$filename"
 done
 
 echo '---- Analyzing Input ----'

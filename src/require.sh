@@ -11,7 +11,6 @@ declare -a req=(
 	mkdir
 	mv
 	python3
-	read
 	rm
 	sed
 	sort

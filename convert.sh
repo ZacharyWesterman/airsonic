@@ -41,7 +41,7 @@ convert_file()
 
 	echo "[$current/$total] Converting: $(basename "$mp3")"
 
-	ffmpeg -i "$src" "$mp3" -y -loglevel error -nostats </dev/null >/dev/null #&& rm "$src"
+	ffmpeg -i "$src" "$mp3" -y -loglevel error -nostats </dev/null >/dev/null && rm "$src"
 }
 
 MAXPROC=$(nproc)

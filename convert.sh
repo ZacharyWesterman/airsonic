@@ -51,7 +51,7 @@ echo -n 'Counting files...'
 TOTAL=0
 for folder in "$@"
 do
-	ct="$(find "$folder/" -type f \( -name '*.m4a' -or -name '*.m4b' \) | wc -l)"
+	ct="$(find "$folder/" -type f \( -name '*.m4a' -or -name '*.m4b' -or -name '*.ogg' -or -name '*.flac' \) | wc -l)"
 	TOTAL=$((TOTAL + ct))
 done
 echo " $TOTAL files will be converted."
@@ -87,7 +87,7 @@ do
 		convert_file "$src" "$CURRENT" "$TOTAL" &
 		PIDS+=($!)
 		sleep .1
-	done < <(find "$folder/" -type f \( -name '*.m4a' -or -name '*.m4b' \))
+	done < <(find "$folder/" -type f \( -name '*.m4a' -or -name '*.m4b' -or -name '*.ogg' -or -name '*.flac' \))
 done
 
 wait

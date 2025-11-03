@@ -5,7 +5,7 @@ declare -A tags=()
 #first param must be a file
 if [ ! -z "$filename" ] && [ -e "$filename" ]
 then
-	while read __temp
+	while read -r __temp
 	do
 		tags["${__temp%%: *}"]="${__temp#*: }"
 	done < <(exiftool -s -s -Artist -AlbumArtist -Album -AlbumTitle -MediaType -Genre -Title "$filename")
@@ -24,6 +24,10 @@ then
 	[ "${tags[Artist]}" == 'Soundtrack' ] && tags[MediaType]=Soundtrack
 	[ "${tags[MediaType]}" == 'None' ] && tags[MediaType]=Audiobook
 	[ "${tags[MediaType]}" == "Children's" ] && tags[MediaType]=Audiobook
+	[[ "${tags[MediaType]^^}" == *'MYTHICAL'* ]] && tags[MediaType]=Audiobook
+	[[ "${tags[MediaType]^^}" == *'FANTASY'* ]] && tags[MediaType]=Audiobook
+	[[ "${tags[MediaType]^^}" == *'FICTION'* ]] && tags[MediaType]=Audiobook
+	[[ "${tags[MediaType]^^}" == *'ADVENTURE'* ]] && tags[MediaType]=Audiobook
 
 	#strip slashes out of Artist & Album so we can organize as directories
 	tags[Artist]="$(sed -e 's/[\///]//g' <<< "${tags[Artist]}")"

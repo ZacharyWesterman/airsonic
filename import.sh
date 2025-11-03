@@ -34,7 +34,7 @@ done
 echo '---- Analyzing Input ----'
 
 # Do an initial scan of the folder, get metadata about the files and organize them
-while read filename
+while read -r filename
 do
 	#ignore any files that are not just audio
 	[ "$(file "$filename" | grep -iE '(audio|stereo)')" == '' ] && continue
@@ -55,10 +55,12 @@ do
 		if [ -e "$convtemp/short.wav" ]
 		then
 			#read tags from audd call.
-			while read k
-			do
-				tags["${k%%: *}"]="${k#*: }"
-			done < <("$srcdir/audd.py" "$convtemp/short.wav")
+			if [ -e audd_api_token.txt ]; then
+				while read -r k
+				do
+					tags["${k%%: *}"]="${k#*: }"
+				done < <("$srcdir/audd.py" "$convtemp/short.wav")
+			fi
 			. "$srcdir/tags.sh"
 
 			#Write the appropriate metadata

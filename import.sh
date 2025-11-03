@@ -9,16 +9,16 @@ srcdir="$(pwd)/src"
 
 begin=$(date +%s)
 
-temp1=/var/tmp/Incoming
-temp2=/var/tmp/Incoming2
-convtemp=/tmp/conversion
+temp1=/mnt/storage/tmp/Incoming
+temp2=/mnt/storage/tmp/Incoming2
+convtemp=/mnt/storage/tmp/conversion
 
 rm -rf $temp1
-[ -d /home/airsonic/Music/Incoming ] || exit 0
+[ -d /mnt/storage/data/airsonic/Music/Incoming ] || exit 0
 
 echo "$(date) import started"
 
-mv /home/airsonic/Music/Incoming $temp1
+mv /mnt/storage/data/airsonic/Music/Incoming $temp1
 
 cd $temp1 || exit 1
 rm -rf $temp2 $convtemp
@@ -104,9 +104,9 @@ do
 
 	rm "$folder/types.txt" "$folder/artists.txt"
 
-	prefix=/home/airsonic/Music
-	[ "$MediaType" == 'Audiobook' ] && prefix=/home/airsonic/Audiobooks
-	[ "$MediaType" == 'Soundtrack' ] && prefix=/home/airsonic/Soundtracks
+	prefix=/mnt/storage/data/airsonic/Music
+	[ "$MediaType" == 'Audiobook' ] && prefix=/mnt/storage/data/airsonic/Audiobooks
+	[ "$MediaType" == 'Soundtrack' ] && prefix=/mnt/storage/data/airsonic/Soundtracks
 
 	dest="$prefix/$Artist/$Album"
 	mkdir -p "$dest"

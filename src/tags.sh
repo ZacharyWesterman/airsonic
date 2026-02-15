@@ -28,6 +28,7 @@ then
 	[[ "${tags[MediaType]^^}" == *'FANTASY'* ]] && tags[MediaType]=Audiobook
 	[[ "${tags[MediaType]^^}" == *'FICTION'* ]] && tags[MediaType]=Audiobook
 	[[ "${tags[MediaType]^^}" == *'ADVENTURE'* ]] && tags[MediaType]=Audiobook
+	[[ "${tags[MediaType]^^}" == *MILITARY* ]] && tags[MediaType]=Audiobook
 
 	#strip slashes out of Artist & Album so we can organize as directories
 	tags[Artist]="$(sed -e 's/[\///]//g' <<< "${tags[Artist]}")"
